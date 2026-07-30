@@ -1,4 +1,5 @@
 #include "account.h"
+#include <cstdint>
 auto Account::withdraw(double amount) -> bool {
   if (amount < 0) {
     account_log("Amount can't be negative\n");
@@ -23,4 +24,8 @@ auto Account::deposit(double amount) -> bool {
 
 auto Account::get_balance() -> void {
   account_log(std::format("Current Balance: {}\n", balance));
+}
+
+auto Account::check_passwd(uint64_t ph_no) -> bool {
+  return ph_no == this->ph_no;
 }
