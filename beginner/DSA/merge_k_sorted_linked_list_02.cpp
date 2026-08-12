@@ -10,8 +10,9 @@ struct ListNode {
 class Solution {
 private:
   ListNode *merge(ListNode *l1, ListNode *l2) {
-    ListNode *dummy = new ListNode(0);
-    ListNode *curr = dummy;
+    ListNode dummy(0);
+    ListNode *curr = &dummy;
+
     while (l1 != nullptr && l2 != nullptr) {
       if (l1->val <= l2->val) {
         curr->next = l1;
@@ -22,20 +23,28 @@ private:
       }
       curr = curr->next;
     }
+
     if (l1 != nullptr)
       curr->next = l1;
     else
       curr->next = l2;
-    return dummy->next;
+
+    return dummy.next;
   }
 
 public:
   ListNode *mergeKLists(std::vector<ListNode *> &lists) {
     if (lists.empty())
       return nullptr;
-    for (int i = 1; i < lists.size(); ++i) {
-      lists[i] = merge(lists[i], lists[i - 1]);
+
+    int interval = 1;
+    while (interval < lists.size()) {
+      for (int i = 0; i + interval < lists.size(); i = i + interval * 2) {
+        lists[i] = merge(lists[i], lists[i + interval]);
+      }
+      interval *= 2;
     }
-    return lists.back();
+
+    return lists[0];
   }
 };
