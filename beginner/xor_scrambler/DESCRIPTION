@@ -1,0 +1,1 @@
+Write a simple function that takes a buffer of bytes and a single-byte "key," and applies an XOR bitwise operation (^) to every byte
