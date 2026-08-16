@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <iostream>
 
-uint16_t swapBytes16(uint16_t value);
+uint16_t swapBytes16(uint16_t value) { return (value << 8) | (value >> 8); }
 
 int main() {
   uint16_t networkPort = 0x1234;
