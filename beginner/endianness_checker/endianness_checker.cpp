@@ -3,7 +3,8 @@
 
 auto isLittleEndian() -> bool {
   uint16_t testValue = 0x0001;
-  return false;
+  auto testValAddr = reinterpret_cast<uint8_t *>(&testValue);
+  return *testValAddr == 1;
 }
 
 int main() {
