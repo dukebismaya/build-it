@@ -30,13 +30,11 @@ Node *insertAtEnd(Node *head, int data) {
 Node *insertAtAnyPos(Node *head, int data, int pos) {
   if (pos < 1)
     return head;
-  if (pos == 1) {
-    Node *newNode = new Node(data);
-    newNode->next = head;
-    return newNode;
-  }
+  if (pos == 1)
+    return insertAtBeginning(head, data);
+
   Node *curr = head;
-  for (int i = 0; i < pos - 1 && curr != nullptr; ++i) {
+  for (int i = 1; i < pos - 1 && curr != nullptr; ++i) {
     curr = curr->next;
   }
   if (curr == nullptr)
@@ -69,8 +67,29 @@ Node *deleteFromEnd(Node *head) {
   while (curr->next->next != nullptr) {
     curr = curr->next;
   }
+
   delete curr->next;
   curr->next = nullptr;
+
+  return head;
+}
+
+Node *deleteFromAnyPos(Node *head, int pos) {
+  if (pos == 1) {
+    return deleteFromBeginning(head);
+  }
+  Node *temp = head;
+  Node *prev = nullptr;
+  for (int i = 1; i < pos && temp != nullptr; ++i) {
+    prev = temp;
+    temp = temp->next;
+  }
+  if (temp == nullptr)
+    return head;
+  prev->next = temp->next;
+  temp->next = nullptr;
+  delete temp;
+
   return head;
 }
 
@@ -111,6 +130,10 @@ int main() {
   traverseLinkedList(head);
   std::cout << "Deleting from end: ";
   head = deleteFromEnd(head);
+  traverseLinkedList(head);
+  std::cout << "Deleting from any pos: ";
+  int toDelete = 3;
+  head = deleteFromAnyPos(head, toDelete);
   traverseLinkedList(head);
 
   return 0;
