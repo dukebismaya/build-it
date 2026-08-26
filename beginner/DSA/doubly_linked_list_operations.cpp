@@ -21,6 +21,40 @@ Node *insertAtBeginning(Node *head, int data) {
   return newNode;
 }
 
+Node *insertAtEnd(Node *head, int data) {
+  if (head == nullptr)
+    return insertAtBeginning(head, data);
+  Node *newNode = new Node(data);
+  Node *curr = head;
+  while (curr->next != nullptr) {
+    curr = curr->next;
+  }
+  curr->next = newNode;
+  newNode->prev = curr;
+  return head;
+}
+
+Node *insertAtAnyPos(Node *head, int data, int pos) {
+  if (pos <= 1 || head == nullptr)
+    return insertAtBeginning(head, data);
+
+  Node *curr = head;
+  for (int i = 1; i < pos - 1 && curr->next != nullptr; ++i) {
+    curr = curr->next;
+  }
+
+  Node *newNode = new Node(data);
+  newNode->next = curr->next;
+  newNode->prev = curr;
+
+  if (curr->next != nullptr) {
+    curr->next->prev = newNode;
+  }
+  curr->next = newNode;
+
+  return head;
+}
+
 void printList(Node *head) {
   Node *curr{head};
   while (curr != nullptr) {
