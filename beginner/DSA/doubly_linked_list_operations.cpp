@@ -13,6 +13,14 @@ public:
   }
 };
 
+Node *insertAtBeginning(Node *head, int data) {
+  Node *newNode = new Node(data);
+  newNode->next = head;
+  if (head != nullptr)
+    head->prev = newNode;
+  return newNode;
+}
+
 void printList(Node *head) {
   Node *curr{head};
   while (curr != nullptr) {
