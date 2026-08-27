@@ -26,6 +26,14 @@ void preOrderTraversal(const Node *node, std::vector<int> &res) {
   preOrderTraversal(node->right.get(), res);
 }
 
+void postOrderTraversal(const Node *node, std::vector<int> &res) {
+  if (node == nullptr)
+    return;
+  postOrderTraversal(node->left.get(), res);
+  postOrderTraversal(node->right.get(), res);
+  res.push_back(node->data);
+}
+
 int main() {
   auto root = std::make_unique<Node>(1);
   root->left = std::make_unique<Node>(2);
