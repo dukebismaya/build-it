@@ -34,6 +34,25 @@ void postOrderTraversal(const Node *node, std::vector<int> &res) {
   res.push_back(node->data);
 }
 
+void levelOrderTraversalRecursion(const Node *root,
+                                  std::vector<std::vector<int>> &res,
+                                  int level) {
+  if (root == nullptr)
+    return;
+  if (res.size() <= level) {
+    res.push_back({});
+  }
+  res[level].push_back(root->data);
+  levelOrderTraversalRecursion(root->left.get(), res, level + 1);
+  levelOrderTraversalRecursion(root->right.get(), res, level + 1);
+}
+
+auto levelOrderTraversal(const Node *root) -> std::vector<std::vector<int>> {
+  std::vector<std::vector<int>> res;
+  levelOrderTraversalRecursion(root, res, 0);
+  return res;
+}
+
 int main() {
   auto root = std::make_unique<Node>(1);
   root->left = std::make_unique<Node>(2);
