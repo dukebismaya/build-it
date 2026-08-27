@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <vector>
+#include <format>
 
 class Node {
 public:
@@ -34,6 +36,7 @@ void postOrderTraversal(const Node *node, std::vector<int> &res) {
   res.push_back(node->data);
 }
 
+// Level order traversal using Recursion
 void levelOrderTraversalRecursion(const Node *root,
                                   std::vector<std::vector<int>> &res,
                                   int level) {
@@ -50,6 +53,31 @@ void levelOrderTraversalRecursion(const Node *root,
 auto levelOrderTraversal(const Node *root) -> std::vector<std::vector<int>> {
   std::vector<std::vector<int>> res;
   levelOrderTraversalRecursion(root, res, 0);
+  return res;
+}
+
+// Level order traversal using queue
+auto levelOrderTraversalQueue(Node *root) -> std::vector<std::vector<int>> {
+  if (root == nullptr)
+    return {};
+  std::queue<Node *> q;
+  q.push(root);
+  std::vector<std::vector<int>> res;
+  int curr_level{};
+  while (!q.empty()) {
+    int len = q.size();
+    res.push_back({});
+    for (int i = 0; i < len; ++i) {
+      auto node = q.front();
+      q.pop();
+      res[curr_level].push_back(node->data);
+      if (node->left != nullptr)
+        q.push(node->left.get());
+      if (node->right != nullptr)
+        q.push(node->right.get());
+    }
+    curr_level++;
+  }
   return res;
 }
 
