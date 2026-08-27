@@ -18,6 +18,14 @@ void inOrderTraversal(const Node *node, std::vector<int> &res) {
   inOrderTraversal(node->right.get(), res);
 }
 
+void preOrderTraversal(const Node *node, std::vector<int> &res) {
+  if (node == nullptr)
+    return;
+  res.push_back(node->data);
+  preOrderTraversal(node->left.get(), res);
+  preOrderTraversal(node->right.get(), res);
+}
+
 int main() {
   auto root = std::make_unique<Node>(1);
   root->left = std::make_unique<Node>(2);
