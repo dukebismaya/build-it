@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <queue>
 
 class Node {
 public:
@@ -30,7 +31,31 @@ int getLevel(const Node *root, int target, int level) {
   int leftLevel = getLevel(root->left, target, level + 1);
   if (leftLevel != -1)
     return leftLevel;
-  return getLevel(root->right, target, level);
+  return getLevel(root->right, target, level + 1);
+}
+// Using the Level Order traversal Method
+int getLevelLOT(Node *root, int target) {
+  if (root == nullptr)
+    return -1;
+  std::queue<Node *> q;
+  q.push(root);
+  int level{};
+  while (!q.empty()) {
+    int len = q.size();
+    for (int i = 0; i < len; ++i) {
+      auto node = q.front();
+      q.pop();
+      if (node->data == target) {
+        return level;
+      }
+      if (node->left != nullptr)
+        q.push(node->left);
+      if (node->right != nullptr)
+        q.push(node->right);
+    }
+    level++;
+  }
+  return -1;
 }
 
 int main() {
