@@ -73,7 +73,14 @@ int main() {
   node->left->left = new Node(5);
   node->left->right = new Node(11);
 
-  std::cout << "Max depth of the tree is: " << height(node);
+  std::cout << "Max depth of the tree is: " << height(node) << '\n';
+
+  std::cout << std::boolalpha;
+  std::cout << "Does node 5 exist? " << nodeExists(node, 5) << '\n';
+  std::cout << "Does node 99 exist? " << nodeExists(node, 99) << '\n';
+
+  std::cout << "Level of node 11 (DFS): " << getLevel(node, 11, 0) << '\n';
+  std::cout << "Level of node 18 (BFS): " << getLevelLOT(node, 18) << '\n';
 
   return 0;
 }
