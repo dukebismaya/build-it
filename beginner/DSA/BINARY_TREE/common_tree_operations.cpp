@@ -58,6 +58,14 @@ int getLevelLOT(Node *root, int target) {
   return -1;
 }
 
+auto nodeExists(const Node *root, int key) -> bool {
+  if (root == nullptr)
+    return false;
+  if (root->data == key)
+    return true;
+  return nodeExists(root->left, key) || nodeExists(root->right, key);
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
