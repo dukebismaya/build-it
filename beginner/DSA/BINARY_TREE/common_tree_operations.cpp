@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
+#include <climits>
 
 class Node {
 public:
@@ -76,6 +77,17 @@ auto sumOfNodes(const Node *root) -> int {
   if (root == nullptr)
     return 0;
   return root->data + sumOfNodes(root->left) + sumOfNodes(root->right);
+}
+
+auto findMin(const Node *root) -> int {
+  if (root == nullptr)
+    return INT_MAX;
+  int res = root->data;
+  int lres = findMin(root->left);
+  int rres = findMin(root->right);
+  if (lres < res) res = lres;
+  if (rres < res) res = rres;
+  return res;
 }
 
 int main() {
