@@ -66,6 +66,12 @@ auto nodeExists(const Node *root, int key) -> bool {
   return nodeExists(root->left, key) || nodeExists(root->right, key);
 }
 
+auto countNodes(const Node *root) -> int {
+  if (root == nullptr)
+    return 0;
+  return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
