@@ -72,6 +72,12 @@ auto countNodes(const Node *root) -> int {
   return 1 + countNodes(root->left) + countNodes(root->right);
 }
 
+auto sumOfNodes(const Node *root) -> int {
+  if (root == nullptr)
+    return 0;
+  return root->data + sumOfNodes(root->left) + sumOfNodes(root->right);
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
