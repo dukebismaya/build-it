@@ -101,6 +101,14 @@ auto findMax(const Node *root) -> int {
   return res;
 }
 
+void printInorder(const Node *root) {
+  if (root == nullptr)
+    return;
+  printInorder(root->left);
+  std::cout << root->data << " ";
+  printInorder(root->right);
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
