@@ -117,6 +117,14 @@ void printPreorder(const Node *root) {
   printPreorder(root->right);
 }
 
+void printPostorder(const Node *root) {
+  if (root == nullptr)
+    return;
+  printPostorder(root->left);
+  printPostorder(root->right);
+  std::cout << root->data << " ";
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
