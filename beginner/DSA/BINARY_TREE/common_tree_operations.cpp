@@ -90,6 +90,17 @@ auto findMin(const Node *root) -> int {
   return res;
 }
 
+auto findMax(const Node *root) -> int {
+  if (root == nullptr)
+    return INT_MIN;
+  int res = root->data;
+  int lres = findMax(root->left);
+  int rres = findMax(root->right);
+  if (lres > res) res = lres;
+  if (rres > res) res = rres;
+  return res;
+}
+
 int main() {
   Node *node = new Node(12);
   node->left = new Node(8);
