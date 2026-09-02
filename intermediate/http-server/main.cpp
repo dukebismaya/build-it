@@ -56,6 +56,22 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::cout << "Client connected\n";
+  char buffer[1024];
+  int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+  if (bytes_received > 0) {
+    buffer[bytes_received] = '\0';
+  }
+  std::istringstream iss(buffer);
+  std::string method, path, version;
+  iss > method >> path >> version;
+  std::string response{};
+  if (path == "/") {
+    response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else {
+    response = "HTTP/1.1 404 Not Found\r\n\r\n";
+  }
+  send(client_fd, response.c_str(), response.length(), 0);
   close(client_fd);
   close(server_fd);
 
