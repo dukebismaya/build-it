@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <arpa/inet.h>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <iostream>
 #include <netdb.h>
 #include <sstream>
@@ -8,6 +10,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+constexpr int PORT_TO_USE = 4221;
 
 int main(int argc, char **argv) {
   std::cout << std::unitbuf;
@@ -30,7 +34,7 @@ int main(int argc, char **argv) {
   struct sockaddr_in server_addr;
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  server_addr.sin_port = htons(4211);
+  server_addr.sin_port = htons(PORT_TO_USE);
 
   if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) !=
       0) {
@@ -52,7 +56,7 @@ int main(int argc, char **argv) {
                          (socklen_t *)&client_addr_len);
 
   if (client_fd < 0) {
-    std::cerr << 'Client Refused to Connect.' << std::endl;
+    std::cerr << "Client Refused to Connect." << std::endl;
     return 1;
   }
 
@@ -64,10 +68,15 @@ int main(int argc, char **argv) {
   }
   std::istringstream iss(buffer);
   std::string method, path, version;
-  iss > method >> path >> version;
+  iss >> method >> path >> version;
   std::string response{};
   if (path == "/") {
     response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else if (path.starts_with("/echo/")) {
+    std::string contents = path.substr(6);
+    response = std::format("HTTP/1.1 200 OK\r\nContent-Type: "
+                           "text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                           contents.length(), contents);
   } else {
     response = "HTTP/1.1 404 Not Found\r\n\r\n";
   }
