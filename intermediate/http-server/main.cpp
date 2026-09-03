@@ -68,25 +68,37 @@ int main(int argc, char **argv) {
     buffer[bytes_received] = '\0';
   }
   std::istringstream iss(buffer);
-  std::istringstream first_line_iss;
-  std::getline(iss, first_line_iss);
+  std::string first_line;
+  std::getline(iss, first_line);
+  std::istringstream first_line_iss(first_line);
   std::string method, path, version;
-  iss >> method >> path >> version;
+  first_line_iss >> method >> path >> version;
+
   std::string response{};
   std::string user_agent;
   std::string line;
-  while (std::getline(first_line_iss, line) && line != '\r') {
-    auto find_semicolon = line.find(":");
-    if (find_semicolon != std::string::npos) {
-      std::string header_name = line.substr(0, find_semicolon);
-      std::string header_value = line.substr(find_semicolon);
+  while (std::getline(iss, line) && line != "\r") {
+    auto colon_pos = line.find(":");
+    if (colon_pos != std::string::npos) {
+      std::string header_name = line.substr(0, colon_pos);
+      std::string header_value = line.substr(colon_pos + 1);
+      
+      size_t start = header_value.find_first_not_of(" \t");
+      if (start != std::string::npos) {
+        header_value.erase(0, start);
+      } else {
+        header_value.clear();
+      }
+
       if (!header_value.empty() && header_value.back() == '\r') {
         header_value.pop_back();
       }
-      std::string header_name_lower;
-      std::transform(header_name.begin(), header_name.end(),
+
+      std::string header_name_lower = header_name;
+      std::transform(header_name_lower.begin(), header_name_lower.end(),
                      header_name_lower.begin(),
-                     [](const unsigned char c) { return std::tolower(c); });
+                     [](unsigned char c) { return std::tolower(c); });
+
       if (header_name_lower == "user-agent") {
         user_agent = header_value;
       }
