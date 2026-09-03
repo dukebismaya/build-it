@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <arpa/inet.h>
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <format>
@@ -67,11 +68,36 @@ int main(int argc, char **argv) {
     buffer[bytes_received] = '\0';
   }
   std::istringstream iss(buffer);
+  std::istringstream first_line_iss;
+  std::getline(iss, first_line_iss);
   std::string method, path, version;
   iss >> method >> path >> version;
   std::string response{};
+  std::string user_agent;
+  std::string line;
+  while (std::getline(first_line_iss, line) && line != '\r') {
+    auto find_semicolon = line.find(":");
+    if (find_semicolon != std::string::npos) {
+      std::string header_name = line.substr(0, find_semicolon);
+      std::string header_value = line.substr(find_semicolon);
+      if (!header_value.empty() && header_value.back() == '\r') {
+        header_value.pop_back();
+      }
+      std::string header_name_lower;
+      std::transform(header_name.begin(), header_name.end(),
+                     header_name_lower.begin(),
+                     [](const unsigned char c) { return std::tolower(c); });
+      if (header_name_lower == "user-agent") {
+        user_agent = header_value;
+      }
+    }
+  }
   if (path == "/") {
     response = "HTTP/1.1 200 OK\r\n\r\n";
+  } else if (path.starts_with("/user-agent")) {
+    response = std::format("HTTP/1.1 200 OK\r\nContent-Type: "
+                           "text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                           user_agent.length(), user_agent);
   } else if (path.starts_with("/echo/")) {
     std::string contents = path.substr(6);
     response = std::format("HTTP/1.1 200 OK\r\nContent-Type: "
