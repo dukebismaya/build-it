@@ -67,4 +67,5 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
-**/TEST/
+**/TEST*/
+diagnostic_site/
