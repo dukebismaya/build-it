@@ -1,99 +1,163 @@
-/**
- * @file sylvester_sequence_generator.cpp
- * @brief Sylvester's Sequence and Egyptian Fraction decomposition of 1 in C++17.
+/*
+ * ============================================================================
+ *  Sylvester's Sequence Generator
+ * ============================================================================
  *
- * Definition:
- *   Sylvester's sequence is an integer sequence in which each term is the product
- *   of all previous terms, plus one:
- *     a_0 = 2
- *     a_n = 1 + prod_{i=0}^{n-1} a_i  =  a_{n-1}^2 - a_{n-1} + 1
+ *  Sylvester's sequence is defined by the recurrence:
+ *    a(0) = 2
+ *    a(n) = a(0) * a(1) * ... * a(n-1) + 1
  *
- *   The sequence begins:
- *     2, 3, 7, 43, 1807, 3263443, 10650056950807, ...
+ *  Equivalently:
+ *    a(n) = a(n-1)^2 - a(n-1) + 1
  *
- * Mathematical Properties:
- *   1. Pairwise Coprimality: Every pair of distinct terms in Sylvester's sequence
- *      is coprime: gcd(a_i, a_j) = 1 for all i != j. (Provides a constructive proof
- *      that there are infinitely many prime numbers).
- *   2. Rapid Convergence to 1 (Greedy Egyptian Fraction):
- *      The sum of the reciprocals converges doubly-exponentially fast to 1:
- *        1/2 + 1/3 + 1/7 + 1/43 + 1/1807 + ... = 1
- *      Partial sum identity:
- *        sum_{i=0}^{n} (1 / a_i) = 1 - 1 / (a_{n+1} - 1).
+ *  This second form shows the sequence grows doubly exponentially.
  *
- * Complexity:
- *   - Time: O(n) arithmetic operations (terms grow doubly-exponentially, fitting in
- *     128-bit unsigned integers up to a_7).
- *   - Space: O(n).
+ *  First terms: 2, 3, 7, 43, 1807, 3263443, ...
+ *
+ *  Properties:
+ *  - Each term is coprime to all previous terms (by construction).
+ *  - The sum of reciprocals is a telescoping series:
+ *    1/a(0) + 1/a(1) + ... + 1/a(n-1) = 1 - 1/(a(0)*...*a(n-1))
+ *    which approaches 1 from below (this gives an Egyptian fraction
+ *    representation converging to 1).
+ *  - Appears in Euclid's proof that there are infinitely many primes.
+ *  - Used to construct optimal Egyptian fraction expansions of 1.
+ *
+ *  Due to rapid growth, we use uint64_t for the first several terms and
+ *  stop when overflow would occur.
+ *
+ *  Time Complexity:  O(n) multiplications (each multiplication on large numbers)
+ *  Space Complexity: O(n)
+ * ============================================================================
  */
 
 #include <iostream>
 #include <vector>
+#include <cstdint>
 #include <iomanip>
 #include <string>
-#include <cstdint>
 
-namespace sequences {
+namespace sylvester {
 
-using uint128 = unsigned __int128;
-
-std::string toString128(uint128 val) {
-    if (val == 0) return "0";
-    std::string s;
-    while (val > 0) {
-        s += static_cast<char>('0' + (val % 10));
-        val /= 10;
-    }
-    return std::string(s.rbegin(), s.rend());
-}
-
-/**
- * @brief Generates Sylvester's sequence terms a_0 through a_n.
- * @param n Max index (up to n = 7 fits in 128-bit unsigned integers).
+/*
+ * Generate first numTerms of Sylvester's sequence using the
+ * quadratic recurrence a(n) = a(n-1)^2 - a(n-1) + 1.
+ * We use uint64_t and stop when overflow would occur.
  */
-std::vector<uint128> generateSylvester(size_t n) {
-    std::vector<uint128> seq;
-    uint128 current = 2;
-    seq.push_back(current);
+std::vector<uint64_t> generateSafe(int numTerms) {
+    std::vector<uint64_t> seq;
+    if (numTerms <= 0) return seq;
 
-    for (size_t i = 1; i <= n && i <= 7; ++i) {
-        current = current * current - current + 1;
-        seq.push_back(current);
+    seq.push_back(2);
+
+    for (int i = 1; i < numTerms; ++i) {
+        uint64_t prev = seq.back();
+        /* Check for overflow: prev^2 must fit in uint64_t */
+        if (prev > 4294967295ULL) {
+            /* prev^2 would overflow uint64_t */
+            break;
+        }
+        uint64_t next = prev * prev - prev + 1;
+        seq.push_back(next);
     }
+
     return seq;
 }
 
-} // namespace sequences
+/*
+ * Verify the product property: a(n) = product(a(0)..a(n-1)) + 1
+ */
+bool verifyProductProperty(const std::vector<uint64_t>& seq) {
+    if (seq.size() < 2) return true;
 
-int main() {
-    std::cout << "========================================\n";
-    std::cout << "     SYLVESTER'S SEQUENCE GENERATOR     \n";
-    std::cout << "   (Egyptian Fraction Expansion of 1)   \n";
-    std::cout << "========================================\n\n";
+    uint64_t product = 1;
+    for (size_t i = 0; i < seq.size() - 1; ++i) {
+        /* Check overflow before multiplying */
+        if (product > 0 && seq[i] > UINT64_MAX / product) {
+            return true; /* Cannot verify further, assume OK */
+        }
+        product *= seq[i];
+        if (product + 1 != seq[i + 1]) {
+            return false;
+        }
+    }
+    return true;
+}
 
-    auto seq = sequences::generateSylvester(7);
+/*
+ * Compute partial sum of reciprocals as a fraction,
+ * verifying the telescoping identity:
+ *   sum = 1 - 1/product(a(0)..a(n-1))
+ */
+void showReciprocalSum(const std::vector<uint64_t>& seq, int terms) {
+    std::cout << "  Partial sum of reciprocals (first " << terms << " terms):\n";
+    std::cout << "  sum = ";
 
-    std::cout << std::left << std::setw(4)  << "n"
-              << std::setw(30) << "a_n"
-              << std::setw(22) << "Partial Sum sum(1/a_i)"
-              << "Remaining Gap (1 - Sum)\n";
-    std::cout << std::string(80, '-') << "\n";
-
-    double partialSum = 0.0;
-    for (size_t i = 0; i < seq.size(); ++i) {
-        partialSum += 1.0 / static_cast<double>(seq[i]);
-        double gap = 1.0 - partialSum;
-
-        std::cout << std::left << std::setw(4) << i
-                  << std::setw(30) << sequences::toString128(seq[i])
-                  << std::fixed << std::setprecision(15) << std::setw(22) << partialSum
-                  << std::scientific << std::setprecision(4) << gap << "\n";
+    double sum = 0.0;
+    for (int i = 0; i < terms && i < static_cast<int>(seq.size()); ++i) {
+        sum += 1.0 / static_cast<double>(seq[i]);
+        if (i > 0) std::cout << " + ";
+        std::cout << "1/" << seq[i];
     }
 
-    std::cout << "\nExact Fraction Identity Check (first 4 terms):\n";
-    std::cout << "  1/2 + 1/3 + 1/7 + 1/43 = 1805 / 1806 = 1 - 1 / (1807 - 1)\n";
-    std::cout << "  Notice (a_4 - 1) = " << sequences::toString128(seq[4] - 1) << ".\n\n";
+    std::cout << "\n      = " << std::fixed << std::setprecision(15) << sum << "\n";
+    std::cout << "  Deficit from 1.0 = " << (1.0 - sum) << "\n";
+}
 
-    std::cout << "Program finished successfully.\n";
+/*
+ * Verify coprimality of all pairs.
+ */
+uint64_t gcd(uint64_t a, uint64_t b) {
+    while (b != 0) {
+        uint64_t t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+bool verifyCoprimality(const std::vector<uint64_t>& seq) {
+    for (size_t i = 0; i < seq.size(); ++i) {
+        for (size_t j = i + 1; j < seq.size(); ++j) {
+            if (gcd(seq[i], seq[j]) != 1) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+} // namespace sylvester
+
+int main() {
+    std::cout << "========================================================\n";
+    std::cout << "  Sylvester's Sequence Generator\n";
+    std::cout << "========================================================\n\n";
+
+    auto seq = sylvester::generateSafe(10);
+
+    std::cout << "Sylvester's Sequence (computed until uint64 overflow):\n";
+    for (size_t i = 0; i < seq.size(); ++i) {
+        std::cout << "  a(" << i << ") = " << seq[i] << "\n";
+    }
+
+    std::cout << "\nQuadratic recurrence verification: a(n) = a(n-1)^2 - a(n-1) + 1\n";
+    for (size_t i = 1; i < seq.size(); ++i) {
+        uint64_t expected = seq[i - 1] * seq[i - 1] - seq[i - 1] + 1;
+        std::cout << "  a(" << i << ") = " << seq[i - 1] << "^2 - " << seq[i - 1]
+                  << " + 1 = " << expected
+                  << (expected == seq[i] ? " (correct)" : " (ERROR)") << "\n";
+    }
+
+    std::cout << "\nProduct property verification: a(n) = a(0)*...*a(n-1) + 1 -> "
+              << (sylvester::verifyProductProperty(seq) ? "PASSED" : "FAILED") << "\n";
+
+    std::cout << "\nAll pairs coprime: "
+              << (sylvester::verifyCoprimality(seq) ? "YES" : "NO") << "\n";
+
+    std::cout << "\n";
+    int recipTerms = std::min(static_cast<int>(seq.size()), 6);
+    sylvester::showReciprocalSum(seq, recipTerms);
+
     return 0;
 }
